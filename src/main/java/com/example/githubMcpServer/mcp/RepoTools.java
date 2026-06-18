@@ -34,6 +34,9 @@ public class RepoTools {
     public String cloneRepo(
             @ToolParam(description = "Repo URL") String repoUrl) throws Exception {
 
+        //probably want to use temp directories...
+        //Path tempFile = Files.createTempFile(tempDir, "data-", ".txt");
+        //then keep it in a list and delete them when the connection ends
         ctx.repoDir = new File("repo-" + System.currentTimeMillis());
 
         git.cloneRepo(repoUrl, ctx.repoDir);
@@ -41,8 +44,9 @@ public class RepoTools {
         return "Repository cloned to " + ctx.repoDir.getAbsolutePath();
     }
 
-    // ✅ 2. FIND POM
-    @Tool(description = "Find pom.xml in cloned repository")
+    // ✅ 2. FIND POM or POMs
+    @Tool(description = "Find  root pom.xml in cloned repository")
+
     public String findPom() throws Exception {
 
         ctx.pomPath = Files.walk(ctx.repoDir.toPath())
@@ -53,7 +57,12 @@ public class RepoTools {
         return "Found pom.xml at " + ctx.pomPath;
     }
 
-    // ✅ 3. READ POM
+    // ✅ 3. READ POM this is a tool Probably need to have another one that lists all the poms
+    //then need list all child poms and give me the child pomn contents
+    // probably want to throw exception if child pom has a modules
+
+    //probably three tools. findrootpom, find childpoms (needs root pom filename as argument), read pom given filename as argument,
+
     @Tool(description = "Read pom.xml content")
     public String readPom() throws Exception {
 
@@ -63,14 +72,19 @@ public class RepoTools {
                 Math.min(500, ctx.originalContent.length()));
     }
 
-    // ✅ 4. ANALYZE
+    // ✅ 4. ANALYZE  <-- this is really bad. Agent
     @Tool(description = "Analyze vulnerabilities in pom.xml")
     public String analyzePom() {
 
         return gemini.analyzeAndFix(ctx.originalContent);
     }
 
-    // ✅ 5. FIX
+    // ✅ 5. This is bad too. We need to work out how to fix it. The LLM will want to load a file and save a file
+    // Probably it's the POM. So we need a way to support that...
+    //Think about how to do this
+    // options: rewrite whole pom (so this is really 'save POM')
+    //          given a pom file name (more than one pom in the system), and a group and a artifact id and a version, update the version
+    //error handling is important
     @Tool(description = "Fix vulnerabilities in pom.xml")
     public String fixPom() throws Exception {
 
@@ -81,7 +95,7 @@ public class RepoTools {
         return "pom.xml updated with fixes";
     }
 
-    // ✅ 6. CREATE BRANCH
+    // ✅ 6. CREATE BRANCH - tool good
     @Tool(description = "Create a new Git branch")
     public String createBranch() throws Exception {
 
@@ -92,7 +106,7 @@ public class RepoTools {
         return "Branch created: " + ctx.branchName;
     }
 
-    // ✅ 7. PUSH
+    // ✅ 7. PUSH //good tool.
     @Tool(description = "Commit and push changes to GitHub")
     public String pushChanges() throws Exception {
 
@@ -101,7 +115,7 @@ public class RepoTools {
         return "Changes pushed";
     }
 
-    // ✅ 8. CREATE PR
+    // ✅ 8. CREATE PR // good tool
     @Tool(description = "Create pull request for changes")
     public String createPR(
             @ToolParam(description = "Repo owner") String owner,
