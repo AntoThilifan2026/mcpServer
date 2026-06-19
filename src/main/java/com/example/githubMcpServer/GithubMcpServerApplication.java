@@ -1,6 +1,6 @@
 package com.example.githubMcpServer;
 
-import com.example.githubMcpServer.mcp.RepoTools;
+import com.example.githubMcpServer.mcp.McpTools;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.boot.SpringApplication;
@@ -15,9 +15,9 @@ public class GithubMcpServerApplication {
 	}
 
 	@Bean
-	public ToolCallbackProvider tools(RepoTools tools) {
+	ToolCallbackProvider toolCallbackProvider(McpTools repoTools) {
 		return MethodToolCallbackProvider.builder()
-				.toolObjects(tools)
+				.toolObjects(repoTools)
 				.build();
 	}
 

@@ -1,7 +1,7 @@
 package com.example.githubMcpServer;
 
 
-
+//C://Users//jenij//OneDrive//Desktop//Anto Thilifan//mcpServer//target//githubMcpServer-0.0.1-SNAPSHOT.jar
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
@@ -18,32 +18,32 @@ public class McpClient {
 
         try {
 
-            // ✅ Start MCP server
+            //  Start MCP server
             ServerParameters params = ServerParameters.builder("java")
                     .args(
                             "-Dspring.ai.mcp.server.stdio=true",
                             "-jar",
-                            "C://Users//antothilifanr.bibia//OneDrive - HCL TECHNOLOGIES LIMITED//Desktop//GithubMcpServer//githubMcpServer//target//githubMcpServer-0.0.1-SNAPSHOT.jar"
+                            "target/githubMcpServer-0.0.1-SNAPSHOT.jar"
                     )
                     .build();
 
-            // ✅ Correct transport
+            //  Correct transport
             var transport = new StdioClientTransport(
                     params,
                     McpJsonDefaults.getMapper()
             );
 
-            // ✅ Correct client
+            //  Correct client
             McpSyncClient client = io.modelcontextprotocol.client.McpClient.sync(transport)
                     .requestTimeout(Duration.ofSeconds(30))
                     .build();
 
-            // ✅ Initialize
+            //  Initialize
             client.initialize();
 
             System.out.println("✅ Connected to MCP Server");
 
-            // ✅ List tools
+            //  List tools
             System.out.println(client.listTools());
 
             Scanner sc = new Scanner(System.in);
@@ -67,64 +67,165 @@ public class McpClient {
 
     private static void handle(McpSyncClient client, String input) {
 
-        try {
+            try {
 
-            if (input.contains("clone")) {
+                String[] parts = input.split(" ", 2);
 
-                var result = client.callTool(
-                        McpSchema.CallToolRequest
-                                .builder()
-                                .name("cloneRepo")
-                                .arguments(Map.of(
-                                        "repoUrl",
-                                        extractUrl(input)
-                                ))
-                                .build()
-                );
+                String command = parts[0];
 
-                System.out.println(result);
+                switch (command) {
+
+                    case "clone" -> {
+
+                        String repoUrl = parts[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("cloneRepo")
+                                        .arguments(Map.of(
+                                                "repoUrl", repoUrl
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "findRootPom" -> {
+
+                        String repoDir = parts[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("findRootPom")
+                                        .arguments(Map.of(
+                                                "repoDir", repoDir
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "findAllPoms" -> {
+
+                        String repoDir = parts[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("findAllPoms")
+                                        .arguments(Map.of(
+                                                "repoDir", repoDir
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "readPom" -> {
+
+                        String pomPath = parts[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("readPom")
+                                        .arguments(Map.of(
+                                                "pomPath", pomPath
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "createBranch" -> {
+
+                        String[] args = parts[1].split(" ");
+
+                        String repoDir = args[0];
+                        String branchName = args[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("createBranch")
+                                        .arguments(Map.of(
+                                                "repoDir", repoDir,
+                                                "branchName", branchName
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "pushChanges" -> {
+
+                        String[] args = parts[1].split(" ", 3);
+
+                        String repoDir = args[0];
+                        String branchName = args[1];
+                        String commitMessage = args[2];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("pushChanges")
+                                        .arguments(Map.of(
+                                                "repoDir", repoDir,
+                                                "branchName", branchName,
+                                                "commitMessage", commitMessage
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "createPR" -> {
+
+                        String[] args = parts[1].split(" ");
+
+                        String owner = args[0];
+                        String repo = args[1];
+                        String branchName = args[2];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("createPR")
+                                        .arguments(Map.of(
+                                                "owner", owner,
+                                                "repo", repo,
+                                                "branchName", branchName
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    case "cleanupRepository" -> {
+
+                        String repoDir = parts[1];
+
+                        var result = client.callTool(
+                                McpSchema.CallToolRequest.builder()
+                                        .name("cleanupRepository")
+                                        .arguments(Map.of(
+                                                "repoDir", repoDir
+                                        ))
+                                        .build()
+                        );
+
+                        System.out.println(result);
+                    }
+
+                    default -> System.out.println("Unknown command");
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            else if (input.contains("find")) {
-
-                var result = client.callTool(
-                        McpSchema.CallToolRequest.builder().name("findPom").build()
-                );
-
-                System.out.println(result);
-            }
-
-            else if (input.contains("fix")) {
-
-                var result = client.callTool(
-                        McpSchema.CallToolRequest.builder().name("fixPom").build()
-                );
-
-                System.out.println(result);
-            }
-
-            else if (input.contains("pr")) {
-
-                var result = client.callTool(
-                        McpSchema.CallToolRequest.builder().name("createPR")
-                                .arguments(Map.of(
-                                        "owner", "AntoThilifan2026",
-                                        "repo", "mcp-demo"
-                                ))
-                                .build()
-                );
-
-                System.out.println(result);
-            }
-
-            else {
-                System.out.println("❌ Unknown command");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-    }
 
     private static String extractUrl(String input) {
         for (String word : input.split(" ")) {
