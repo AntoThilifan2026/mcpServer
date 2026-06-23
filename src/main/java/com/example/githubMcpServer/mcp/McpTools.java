@@ -29,7 +29,7 @@
                     @ToolParam(description = "Repository URL")
                     String repoUrl) throws Exception {
 
-                Path repoDir = Files.createTempDirectory("repo-");
+                Path repoDir = Files.createTempDirectory("repotemporarydir-");
 
                 git.cloneRepo(repoUrl, repoDir.toFile());
 
