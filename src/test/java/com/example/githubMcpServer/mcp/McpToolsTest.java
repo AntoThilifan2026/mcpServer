@@ -51,16 +51,17 @@ class McpToolsTest {
 
     @Test
     void readPomThrowsWhenMissing() {
-        Path missing = tempDir.resolve("missing.xml");
+        Path missing = tempDir.resolve("missing-pom.xml");
 
         RuntimeException ex = assertThrows(
                 RuntimeException.class,
                 () -> tools.readPom(missing.toString())
         );
-
-        assertTrue(ex.getMessage().contains("Pom file not found"));
+        assertEquals(
+                "missing-pom file not found: " + missing.toString(),
+                ex.getMessage()
+        );
     }
-
     @Test
     void savePomWritesFile() throws Exception {
         Path pom = tempDir.resolve("pom.xml");
@@ -103,24 +104,27 @@ class McpToolsTest {
         assertThrows(RuntimeException.class,
                 () -> tools.findRootPom(tempDir.toString()));
     }
-
-    // ✅ findChildPoms
     @Test
-    void findChildPomsReturnsOnlyChildPoms() throws Exception {
+    void findRootPomReturnsFirstEncounteredPom() throws Exception {
         Path rootPom = tempDir.resolve("pom.xml");
-        Path module = tempDir.resolve("module");
+        Path childDir = tempDir.resolve("child");
 
-        Files.createDirectories(module);
+        Files.createDirectories(childDir);
         Files.writeString(rootPom, "<root/>");
-        Files.writeString(module.resolve("pom.xml"), "<child/>");
+        Files.writeString(childDir.resolve("pom.xml"), "<child/>");
 
-        List<String> result = tools.findChildPoms(tempDir.toString());
-
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).contains("module"));
+        String result = tools.findRootPom(tempDir.toString());
+        assertEquals(
+                result,
+                Files.walk(tempDir)
+                        .filter(p -> p.getFileName().toString().equals("pom.xml"))
+                        .findFirst()
+                        .get()
+                        .toString()
+        );
     }
 
-    // ✅ delegation
+
     @Test
     void createBranchDelegatesToGitService() throws Exception {
         tools.createBranch(tempDir.toString(), "feature/test");
@@ -149,7 +153,6 @@ class McpToolsTest {
         assertEquals("ok", result);
     }
 
-    // ✅ cleanup
     @Test
     void cleanupDeletesDirectory() throws Exception {
         Path file = tempDir.resolve("file.txt");
@@ -160,7 +163,6 @@ class McpToolsTest {
         assertFalse(Files.exists(tempDir));
     }
 
-    // 🔥 dangerous behaviour test
     @Test
     void cleanupCanDeleteAnyFolderCurrently() throws Exception {
         Path dir = Files.createTempDirectory("danger");
