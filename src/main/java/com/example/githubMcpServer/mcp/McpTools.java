@@ -29,7 +29,7 @@
                     @ToolParam(description = "Repository URL")
                     String repoUrl) throws Exception {
 
-                Path repoDir = Files.createTempDirectory("repo-");
+                Path repoDir = Files.createTempDirectory("repoTemporary-");
 
                 git.cloneRepo(repoUrl, repoDir.toFile());
 
@@ -45,7 +45,7 @@
                         .filter(path -> path.getFileName().toString().equals("pom.xml"))
                         .findFirst()
                         .orElseThrow(() ->
-                                new RuntimeException("No pom.xml found"));
+                                new RuntimeException("No root pom.xml found"));
 
                 return rootPom.toString();
             }
