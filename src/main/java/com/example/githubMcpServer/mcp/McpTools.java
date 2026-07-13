@@ -2,6 +2,7 @@
 
     import com.example.githubMcpServer.service.GitHubService;
     import com.example.githubMcpServer.service.PullRequestService;
+
     import org.springframework.ai.tool.annotation.Tool;
     import org.springframework.ai.tool.annotation.ToolParam;
     import org.springframework.stereotype.Component;
@@ -28,11 +29,8 @@
             public String cloneRepo(
                     @ToolParam(description = "Repository URL")
                     String repoUrl) throws Exception {
-
                 Path repoDir = Files.createTempDirectory("repoTemporary-");
-
                 git.cloneRepo(repoUrl, repoDir.toFile());
-
                 return repoDir.toAbsolutePath().toString();
             }
 

@@ -12,27 +12,40 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    public String analyzeAndFix(String content) {
+    public String chat(String prompt) {
 
-        String prompt = "Fix vulnerabilities in this pom.xml:\n" + content;
-
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+        String url =
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="
+                        + apiKey;
 
         Map<String, Object> body = Map.of(
-                "contents", new Object[]{
-                        Map.of("parts", new Object[]{
-                                Map.of("text", prompt)
-                        })
-                }
-        );
+                "contents",
+                new Object[]{
+                        Map.of(
+                                "parts",
+                                new Object[]{
+                                        Map.of("text", prompt)
+                                })
+                });
 
         RestTemplate rest = new RestTemplate();
 
-        Map response = rest.postForObject(url, body, Map.class);
+        Map response =
+                rest.postForObject(
+                        url,
+                        body,
+                        Map.class);
 
-        var candidates = (java.util.List<Map>) response.get("candidates");
-        var contentMap = (Map) candidates.get(0).get("content");
-        var parts = (java.util.List<Map>) contentMap.get("parts");
+        var candidates =
+                (java.util.List<Map>)
+                        response.get("candidates");
+
+        var contentMap =
+                (Map) candidates.get(0).get("content");
+
+        var parts =
+                (java.util.List<Map>)
+                        contentMap.get("parts");
 
         return parts.get(0).get("text").toString();
     }

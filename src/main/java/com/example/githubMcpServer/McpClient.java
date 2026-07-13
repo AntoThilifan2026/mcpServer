@@ -1,7 +1,6 @@
 package com.example.githubMcpServer;
 
 
-//C://Users//jenij//OneDrive//Desktop//Anto Thilifan//mcpServer//target//githubMcpServer-0.0.1-SNAPSHOT.jar
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
@@ -17,8 +16,6 @@ public class McpClient {
     public static void main(String[] args) {
 
         try {
-
-            //  Start MCP server
             ServerParameters params = ServerParameters.builder("java")
                     .args(
                             "-Dspring.ai.mcp.server.stdio=true",
