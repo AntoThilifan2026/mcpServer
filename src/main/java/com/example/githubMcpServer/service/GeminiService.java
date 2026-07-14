@@ -30,22 +30,16 @@ public class GeminiService {
 
         RestTemplate rest = new RestTemplate();
 
-        Map response =
-                rest.postForObject(
+        Map response = rest.postForObject(
                         url,
                         body,
                         Map.class);
 
-        var candidates =
-                (java.util.List<Map>)
-                        response.get("candidates");
+        var candidates = (java.util.List<Map>) response.get("candidates");
 
-        var contentMap =
-                (Map) candidates.get(0).get("content");
+        var contentMap = (Map) candidates.get(0).get("content");
 
-        var parts =
-                (java.util.List<Map>)
-                        contentMap.get("parts");
+        var parts = (java.util.List<Map>) contentMap.get("parts");
 
         return parts.get(0).get("text").toString();
     }

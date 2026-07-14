@@ -130,36 +130,21 @@
                     @ToolParam(description = "Commit message")
                     String commitMessage
 
-            ) throws Exception {
-
-                git.commitAndPush(
-                        new File(repoDir),
-                        branchName,
-                        commitMessage
-                );
+            ) throws Exception {git.commitAndPush(new File(repoDir), branchName, commitMessage);
 
                 return "Changes pushed";
             }
 
             @Tool(description = "Create GitHub pull request")
             public String createPR(
-
                     @ToolParam(description = "Repository owner")
                     String owner,
-
                     @ToolParam(description = "Repository name")
                     String repo,
-
                     @ToolParam(description = "Branch name")
                     String branchName
-
             ) {
-
-                return pr.createPR(
-                        owner,
-                        repo,
-                        branchName
-                );
+                return pr.createPR(owner, repo, branchName);
             }
 
             @Tool(description = "Delete temporary repository")

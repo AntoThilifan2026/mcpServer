@@ -7,12 +7,16 @@ import org.springframework.stereotype.Component;
 import java.util.Scanner;
 
 @Component
-public class AgentConsole implements CommandLineRunner {
+public class AgentConsole
+        implements CommandLineRunner {
 
     private final AgentService agentService;
 
-    public AgentConsole(AgentService agentService) {
-        this.agentService = agentService;
+    public AgentConsole(
+            AgentService agentService) {
+
+        this.agentService =
+                agentService;
     }
 
     @Override
@@ -21,10 +25,10 @@ public class AgentConsole implements CommandLineRunner {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("GitHub Agent Started");
+
         System.out.println("Type 'exit' to quit");
 
         while (true) {
-
             System.out.print("\nYou: ");
 
             String input = scanner.nextLine();
@@ -33,10 +37,15 @@ public class AgentConsole implements CommandLineRunner {
                 break;
             }
 
-            String response = agentService.process(input);
+            try {
+                String response =
+                        agentService.process(input);
 
-            System.out.println("\nAgent: "
-                    + response);
+                System.out.println("\nAgent: " + response);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

@@ -11,10 +11,10 @@ public class ConversationMemory {
     private final List<String> messages =
             new ArrayList<>();
 
-    public void add(String role, String content) {
+    public void add(String role, String message) {
 
         messages.add(
-                role + ": " + content);
+                role + ": " + message);
     }
 
     public String getConversation() {
