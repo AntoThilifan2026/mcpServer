@@ -12,52 +12,51 @@ public class AgentService {
     private final McpTools tools;
     private final ConversationMemory memory;
     private final SessionContext session;
+    private final AgentCardLoader cardLoader;
 
     public AgentService(
             GeminiService gemini,
             McpTools tools,
             ConversationMemory memory,
-            SessionContext session) {
+            SessionContext session,
+            AgentCardLoader cardLoader) {
 
         this.gemini = gemini;
         this.tools = tools;
         this.memory = memory;
         this.session = session;
+        this.cardLoader = cardLoader;
     }
 
     public String process(String userInput)
             throws Exception {
 
-        memory.add(
-                "USER",
-                userInput);
+        memory.add("USER", userInput);
 
         int maxIterations = 10;
 
         for (int i = 0; i < maxIterations; i++) {
 
-            String prompt =
-                    buildPrompt();
+            String prompt = cardLoader.loadAgentCard()
+                    + "\n\nCurrent Session:\n"
+                    + "Repository Path: "
+                    + session.getRepoDir()
+                    + "\nPom Path: "
+                    + session.getPomPath()
+                    + "\n\nConversation:\n"
+                    + memory.getConversation();
 
-            String response =
-                    gemini.chat(prompt);
+            String response = gemini.chat(prompt);
 
-//            System.out.println("\nLLM -> " + response);
+            System.out.println("\nLLM -> " + response);
 
             if (response.startsWith("TOOL:")) {
-
                 String toolResult = executeTool(response);
-
-                memory.add(
-                        "TOOL",
-                        toolResult);
-
+                memory.add("TOOL", toolResult);
                 continue;
             }
 
-            memory.add(
-                    "ASSISTANT",
-                    response);
+            memory.add("ASSISTANT", response);
 
             return response;
         }
@@ -65,56 +64,13 @@ public class AgentService {
         return "Maximum iterations reached";
     }
 
-    private String buildPrompt() {
-
-        return """
-                You are GitHubAgent.
-
-                Available Tools:
-
-                TOOL:cloneRepo:<repoUrl>
-                Clone repository.
-
-                TOOL:findRootPom:<repoDir>
-                Find root pom.xml.
-
-                TOOL:readPom:<pomPath>
-                Read pom.xml.
-
-                Rules:
-
-                1. Ask user for missing information.
-                2. Use tools when required.
-                3. Do not explain Git commands.
-                4. Return tool call only when tool is needed.
-                5. After receiving tool result continue reasoning.
-
-                Current Session:
-
-                Repo Directory:
-                %s
-
-                Pom Path:
-                %s
-
-                Conversation:
-
-                %s
-                """
-                .formatted(
-                        session.getRepoDir(),
-                        session.getPomPath(),
-                        memory.getConversation());
-    }
-
     private String executeTool(String toolCall)
             throws Exception {
 
-        System.out.println(
-                "\nExecuting -> " + toolCall);
+        System.out.println("\nExecuting -> " + toolCall);
 
-        if (toolCall.startsWith(
-                "TOOL:cloneRepo:")) {
+        // Clone Repository
+        if (toolCall.startsWith("TOOL:cloneRepo:")) {
 
             String repoUrl =
                     toolCall.replace(
@@ -125,40 +81,147 @@ public class AgentService {
                     tools.cloneRepo(repoUrl);
 
             session.setRepoDir(repoDir);
-
-            return """
+            return
+             """
                     Repository cloned successfully.
-
+                    
                     Repository:
                     %s
-
+                    
                     Local Path:
                     %s
                     """
-                    .formatted(
-                            repoUrl,
-                            repoDir);
+                    .formatted(repoUrl, repoDir);
         }
 
+        // Find Root Pom
         if (toolCall.startsWith("TOOL:findRootPom")) {
 
-            String pomPath = tools.findRootPom(session.getRepoDir());
+            String pomPath =
+                    tools.findRootPom(
+                            session.getRepoDir());
 
             session.setPomPath(pomPath);
 
             return """
                     Root pom.xml found.
+                    
                     Path:
                     %s
-                    """.formatted(
-                            pomPath);
+                    """
+                    .formatted(pomPath);
         }
 
+        // Find Child Poms
+        if (toolCall.startsWith("TOOL:findChildPoms")) {
+
+            return tools.findChildPoms(
+                            session.getRepoDir())
+                    .toString();
+        }
+
+        // Read Pom
         if (toolCall.startsWith("TOOL:readPom")) {
+
             return tools.readPom(
                     session.getPomPath());
         }
 
-        return "Unknown Tool";
+        // Save Pom
+        if (toolCall.startsWith("TOOL:savePom:")) {
+
+            String payload = toolCall.replace(
+                            "TOOL:savePom:",
+                            "");
+
+            String[] parts = payload.split("\\|", 2);
+
+            String pomPath = parts[0];
+
+            String content = parts[1];
+
+            return tools.savePom(
+                    pomPath,
+                    content);
+        }
+
+        // Create Branch
+        if (toolCall.startsWith("TOOL:createBranch:")) {
+
+            String branchName =
+                    toolCall.replace(
+                            "TOOL:createBranch:",
+                            "");
+
+            session.setBranchName(
+                    branchName);
+
+            return tools.createBranch(
+                    session.getRepoDir(),
+                    branchName);
+        }
+
+        // Push Changes
+        if (toolCall.startsWith("TOOL:pushChanges:")) {
+
+            String payload =
+                    toolCall.replace(
+                            "TOOL:pushChanges:",
+                            "");
+
+            String[] parts =
+                    payload.split("\\|", 2);
+
+            String branchName =
+                    parts[0];
+
+            String commitMessage =
+                    parts[1];
+
+            return tools.pushChanges(
+                    session.getRepoDir(),
+                    branchName,
+                    commitMessage);
+        }
+
+        // Create PR
+        if (toolCall.startsWith("TOOL:createPR:")) {
+
+            String payload =
+                    toolCall.replace(
+                            "TOOL:createPR:",
+                            "");
+
+            String[] parts =
+                    payload.split("\\|");
+
+            String owner =
+                    parts[0];
+
+            String repo =
+                    parts[1];
+
+            String branchName =
+                    parts[2];
+
+            return tools.createPR(
+                    owner,
+                    repo,
+                    branchName);
+        }
+
+        // Cleanup Repository
+        if (toolCall.startsWith("TOOL:cleanupRepository")) {
+
+            String result =
+                    tools.cleanupRepository(
+                            session.getRepoDir());
+
+            session.setRepoDir(null);
+            session.setPomPath(null);
+            session.setBranchName(null);
+            return result;
+        }
+        return "Unknown Tool : " + toolCall;
     }
 }

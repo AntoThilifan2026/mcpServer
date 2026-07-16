@@ -30,19 +30,13 @@ public class AgentConsole
 
         while (true) {
             System.out.print("\nYou: ");
-
             String input = scanner.nextLine();
-
             if ("exit".equalsIgnoreCase(input)) {
                 break;
             }
-
             try {
-                String response =
-                        agentService.process(input);
-
+                String response = agentService.process(input);
                 System.out.println("\nAgent: " + response);
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

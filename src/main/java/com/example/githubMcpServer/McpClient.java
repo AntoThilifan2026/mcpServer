@@ -87,11 +87,8 @@ public class McpClient {
 
                         System.out.println(result);
                     }
-
                     case "findRootPom" -> {
-
                         String repoDir = parts[1];
-
                         var result = client.callTool(
                                 McpSchema.CallToolRequest.builder()
                                         .name("findRootPom")
@@ -100,7 +97,6 @@ public class McpClient {
                                         ))
                                         .build()
                         );
-
                         System.out.println(result);
                     }
 
