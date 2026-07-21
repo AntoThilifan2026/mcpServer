@@ -28,8 +28,7 @@ public class ThrottlingExecutor {
 
             } catch (HttpStatusCodeException ex) {
 
-                HttpStatusCode statusCode =
-                        ex.getStatusCode();
+                HttpStatusCode statusCode = ex.getStatusCode();
 
                 if (statusCode.value() != 429) {
                     throw ex;
@@ -40,35 +39,25 @@ public class ThrottlingExecutor {
                                 + attempt);
 
             } catch (Exception ex) {
-
-                System.out.println(
-                        "[RETRY] Attempt "
-                                + attempt);
-
+                System.out.println("[RETRY] Attempt " + attempt);
                 if (attempt == MAX_RETRIES) {
                     throw ex;
                 }
             }
-
             exponentialBackoff(delay);
-
             delay *= 2;
         }
 
-        throw new RuntimeException(
-                "Retry limit exceeded");
+        throw new RuntimeException("Retry limit exceeded");
     }
 
     private void exponentialBackoff(long delay) {
 
         try {
 
-            long jitter =
-                    ThreadLocalRandom.current()
-                            .nextLong(500);
+            long jitter = ThreadLocalRandom.current().nextLong(500);
 
-            long waitTime =
-                    delay + jitter;
+            long waitTime = delay + jitter;
 
             System.out.println(
                     "[WAIT] "

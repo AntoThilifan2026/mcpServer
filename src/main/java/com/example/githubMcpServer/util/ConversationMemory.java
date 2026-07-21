@@ -4,20 +4,24 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @Component
 public class ConversationMemory {
 
-    private final List<String> messages = new ArrayList<>();
+    private final List<Message> messages =
+            new ArrayList<>();
 
-    public void add(String role, String message) {
+    public void add(Message message) {
 
-        messages.add(
-                role + ": " + message);
+        messages.add(message);
     }
 
-    public String getConversation() {
+    public List<Message> getMessages() {
 
-        return String.join("\n", messages);
+        return new ArrayList<>(messages);
+    }
+
+    public void clear() {
+
+        messages.clear();
     }
 }
